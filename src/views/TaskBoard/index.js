@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal } from "./NewList/index";
+import EditModal from './editModal';
 import MyTask from "./Mytasks";
 
 import del from "../../assets/delete.png";
@@ -14,15 +15,24 @@ export default class TaskBoard extends React.Component {
     newShow: false,
     newListVal: "",
     newListInput: "",
-    lists: [],
+    lists: [{
+      id:1,
+      name:'list 1',
+      todos:[{id:1, title:'hello', description:'one', date:'12/1/21'}],
+      completed:[{id:1, title:'hello', description:'one'}],
+    }],
+    showAddInput: false,
+    current:[],
   };
 
-  showModal = () => {
+  showModal = (item) => {
+    this.setState({current:item})
+    console.log(item)
     console.log("open");
     this.setState({ show: true });
   };
 
-  hideModal = () => {
+  hideModal=()=>{
     this.setState({ show: false });
   };
 
@@ -34,19 +44,68 @@ export default class TaskBoard extends React.Component {
   NewhideModal = () => {
     this.setState({ newShow: false });
   };
+  getTime() {
+    let d = new Date();
+    var n = d.getTime();
+    return n;
+}
 
   addToList = () => {
+    const newlist = {
+      id: this.getTime(),
+      name:this.state.newListVal,
+      todos:[],
+      completed:[],
+      description:'',
+      date:'',
+    }
     this.setState({
-      lists: [...this.state.lists, this.state.newListVal],
+      lists: [...this.state.lists, newlist],
       newListVal: "",
     });
-    console.log(this.state.lists);
     this.NewhideModal();
   };
+
+  finishTask = (listId, taskId) =>{
+
+  }
+  showInput = () => {
+    this.setState({showAddInput: !(this.state.showAddInput)})
+  }
+
+  addTodo = (listId, todo) => {
+    const updated_list = this.state.lists.filter((item)=>item.id!==listId);
+    const list = this.state.lists.filter((item)=>item.id===listId);
+
+    const update = list[0].todos;
+    const newtodo = {
+      id: this.getTime(),
+      title: todo,
+      description: '',
+      date: '',
+    }
+    update.push(newtodo);
+    list.push({
+      id:listId,
+      name:list.name,
+      todos:update,
+      completed:list.completed,
+    })
+    updated_list.push(list);
+    this.setState({lists:updated_list, showAddInput:false})
+    console.log(this.state.lists)
+  }
 
   handleNewListChange = (e) => {
     this.setState({ newListVal: e.target.value });
   };
+  handleDel = () => {
+    console.log('delete todo')
+    // const todos = this.state.todos.filter((t) => {
+    //   return t.id !== todo
+    // });
+    // this.setState({ todos });
+  }
 
   render() {
     return (
@@ -59,7 +118,7 @@ export default class TaskBoard extends React.Component {
         </div>
         <div className="main">
           {this.state.lists.map((item, index) => (
-            <MyTask name={item} />
+            <MyTask list={item} addTodo={this.addTodo} finishTask={this.finishTask} showModal={this.showModal} show={this.state.showAddInput} showInput={this.showInput}/>
           ))}
         </div>
 
@@ -67,21 +126,7 @@ export default class TaskBoard extends React.Component {
           <img src={add} alt="add button" />
         </div>
 
-        <Modal show={this.state.show} handleClose={this.hideModal}>
-          <div className="modal-body">
-            <div className="modal-header">
-              <img src={del} />
-              <img src={close} onClick={this.hideModal} />
-            </div>
-            <p>Campus Build</p>
-            <textarea
-              className="list-details"
-              placeholder="Add Details"
-            ></textarea>
-            <p>Add Date</p>
-            <p>Move to another list</p>
-          </div>
-        </Modal>
+        <EditModal current={this.state.current} show={this.state.show} hideModal={this.hideModal} handleDel={this.handleDel}/>
 
         <Modal show={this.state.newShow} handleClose={this.NewhideModal}>
           <div className="modal-close">
